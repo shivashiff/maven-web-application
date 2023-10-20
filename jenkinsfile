@@ -1,0 +1,37 @@
+node{
+    
+def mavenHome = tool name : "mvn3.9.5"
+    
+//ceckout code
+stage('checkout code'){
+    git branch: 'development', credentialsId: '4ce26614-f5a1-45bf-b168-221904e8988f', url: 'https://github.com/shivashiff/maven-web-application.git'
+}
+
+//buildstage
+stage('build'){
+ sh "$mavenHome/bin/mvn clean package"
+}
+
+//generate sonarqube report
+stage('sonarqube report'){
+ sh "$mavenHome/bin/mvn sonar:sonar"    
+}
+
+//upload artifact to artifactory repo
+stage('upload artifacts to nexus'){
+ sh "$mavenHome/bin/mvn deploy"    
+}
+
+//deploy app into tomcat server
+stage('deploy app into tomcat server'){
+    sshagent(['f69d4c67-b5fc-4241-86fa-3ae16781ecff']) {
+    sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.0.35:/opt/tomcat9/webapps"
+}
+    
+}
+    
+
+    
+
+    
+} //node closing
